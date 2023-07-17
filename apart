@@ -1,0 +1,250 @@
+1.Write cursor to print 5 records of high salaries employees
+
+DECLARE
+  CURSOR emp_cursor IS
+    SELECT emp_id, ename, sal
+    FROM
+
+    (
+      SELECT emp_id, ename, sal
+      FROM emp40
+      ORDER BY sal DESC
+    )
+    WHERE ROWNUM <= 5;
+  emp_record emp40%ROWTYPE;
+BEGIN
+  OPEN emp_cursor;
+  LOOP
+    FETCH emp_cursor INTO emp_record;
+    EXIT WHEN emp_cursor%NOTFOUND;
+    DBMS_OUTPUT.PUT_LINE('Employee ID: ' || emp_record.emp_id || ', Name: ' || emp_record.ename || ', Salary: ' || emp_record.sal);
+  END LOOP;
+  CLOSE emp_cursor;
+END;
+________________________________________
+2. create table with requires constraints and solve queries CUSTOMER (cust_id, cust_name, address, phone_no) MOVIE(m_id, name, type, star, price) 
+1. get movie id associated with customer name 'Rahul' 
+2. select min and max price as MIN_PRICE and MAX_PRICE
+
+CREATE TABLE CUSTOMER401(cust_id INT PRIMARY KEY, cust_name VARCHAR(10),address VARCHAR(20),phone_no NUMBER(10),m_id int references movie);
+
+CREATE TABLE MOVIE (m_id INT PRIMARY KEY,name VARCHAR(10),type VARCHAR(50),star VARCHAR(10),price FLOAT);
+
+1. SELECT m_id
+FROM CUSTOMER401
+WHERE cust_name = 'Rahul';
+
+2. SELECT MIN(price) AS MIN_PRICE, MAX(price) AS MAX_PRICE
+FROM MOVIE;
+________________________________________
+3. Write PL/SQL block that print today's date
+
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Today''s date is: ' || TO_CHAR(SYSDATE, 'YYYY-MM-DD'));
+END;
+________________________________________
+4. Write a plsql code to print first 10 even numbers 
+
+DECLARE
+  counter NUMBER := 0;
+  number_to_check NUMBER := 0;
+BEGIN
+  WHILE counter < 10 LOOP
+    number_to_check := number_to_check + 1;
+    IF MOD(number_to_check, 2) = 0 THEN
+      counter := counter + 1;
+      DBMS_OUTPUT.PUT_LINE('Even number: ' || number_to_check);
+    END IF;
+  END LOOP;
+END;
+________________________________________
+5. Solve the following queries by creating tables with proper constraints BILL(bill_no, bill_date, party_code, bill_amount, amount_paid) PARTY(party_code, party_name, address) 
+1) Delete all bills from the last month 
+2) List amount wise bills in descending order
+
+
+delete from bill where bill_date< '01-JUL-2023' AND bill_date> '31-MAY-2023';
+OR
+DELETE FROM BILL
+WHERE EXTRACT(MONTH FROM bill_date) = EXTRACT(MONTH FROM SYSDATE) - 1
+  AND EXTRACT(YEAR FROM bill_date) = EXTRACT(YEAR FROM SYSDATE);
+
+2. SELECT * FROM BILL
+ORDER BY BILL_AMOUNT DESC;
+________________________________________
+6. Write a Pl Sql program to check user is eligible for voting or not.
+
+DECLARE
+  user_age NUMBER;
+BEGIN
+  user_age := :user_input;
+  IF user_age >= 18 THEN
+    DBMS_OUTPUT.PUT_LINE('You are eligible for voting.');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('You are not eligible for voting.');
+  END IF;
+END;
+________________________________________
+7. Write Cursor to increase all salesman salary by 500
+
+DECLARE
+  CURSOR c_salesman IS
+    SELECT emp_id, salary
+    FROM employees
+    WHERE job_title = 'salesman';
+  v_emp_id employees.emp_id%TYPE;
+  v_salary employees.salary%TYPE;
+BEGIN
+  OPEN c_salesman;
+  LOOP
+    FETCH c_salesman INTO v_emp_id, v_salary;
+    EXIT WHEN c_salesman%NOTFOUND;
+    v_salary := v_salary + 500;
+    UPDATE employees
+    SET salary = v_salary
+    WHERE emp_id = v_emp_id;
+    DBMS_OUTPUT.PUT_LINE('Updated salary for employee ' || v_emp_id || ': ' || v_salary);
+  END LOOP;
+  CLOSE c_salesman;
+END;
+________________________________________
+8. Write a cursor to increase the salary of employee whose department no is 10
+
+DECLARE
+  CURSOR c_employee IS
+    SELECT empno, sal
+    FROM emp
+    WHERE deptno = 10;
+  v_empno emp.empno%TYPE;
+  v_sal emp.sal%TYPE;
+BEGIN
+  OPEN c_employee;
+  LOOP
+    FETCH c_employee INTO v_empno, v_sal;
+    EXIT WHEN c_employee%NOTFOUND;
+    v_sal := v_sal + 500;
+    UPDATE emp
+    SET sal = v_sal
+    WHERE empno = v_empno;
+    DBMS_OUTPUT.PUT_LINE('Updated salary for employee ' || v_empno || ': ' || v_sal);
+  END LOOP;
+  CLOSE c_employee;
+END;
+
+9. solve following queries by creating tables with proper constraints LANGUAGE(Lang_Id,Lang,Country) VCD(V_ID,V_Name,Actor,Actress,Type,No_of_vcds,No_of_vcds_issued,Language_ID) 
+1) create a view which will display V_ID, V_Name,No_of_vcds,Language country. 
+2) Display language and no of VCDS available in that language
+
+CREATE TABLE LANGUAGE (Lang_Id INT PRIMARY KEY,Lang VARCHAR(20),Country VARCHAR(20));
+
+CREATE TABLE VCD (
+V_ID INT PRIMARY KEY,V_Name VARCHAR(20),Actor VARCHAR(20),
+Actress VARCHAR(20),Type VARCHAR(20),No_of_vcds INT, 
+No_of_vcds_issued INT,LANG_Id INT references LANGUAGE);
+
+
+1.	CREATE OR REPLACE VIEW VCD_View AS
+SELECT V.V_ID, V.V_Name, V.No_of_vcds, L.Lang, L.Country
+FROM VCD V
+JOIN LANGUAGE L ON V.LANG_Id = L.Lang_Id;
+
+2.	SELECT L.Lang, SUM(V.No_of_vcds) AS No_of_VCDs_Available
+FROM LANGUAGE L
+            JOIN VCD V ON L.Lang_Id = V.LANG_Id
+            GROUP BY L.Lang;
+________________________________________
+10. Create a function to display total no of employees 
+CREATE OR REPLACE FUNCTION get_total_employees
+  RETURN NUMBER
+IS
+  total_employees NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO total_employees
+  FROM emp;
+  RETURN total_employees;
+END;
+-------------------------------------------------------------------------------------------------------------------------
+11. create table book(book_id,category,title, author,price, status) and book_status(book_id, membership, issue_date,return_date,fine_charge,fine_paid) 
+1.display all book having category "OS" or "DBMS" 
+2.decrease fine charges by 5% for all student who return book today
+
+
+1. SELECT *
+FROM book
+WHERE category IN ('os', 'dbms');
+
+2.UPDATE book_status
+SET fine_charge = fine_charge - (fine_charge * 0.05)
+WHERE membership = 'stud'
+  AND return_date = TRUNC(SYSDATE);
+________________________________________
+
+12. Write a Pl/SQL block to perform credit and debit transactions on the account table.
+
+create table account(accno int, name char(20), balance float);
+insert into account values(:accno,:name,:balance);
+
+DECLARE
+ac_no int;
+amount float;
+bal float;
+choice char(10);
+BEGIN 
+ ac_no := :account_number;
+ amount := :amount;
+ choice := :Transaction_type;
+ SELECT balance INTO bal
+ FROM account 
+ WHERE accno = ac_no;
+ IF SQL%FOUND THEN
+   dbms_output.put_line('Current balance : '||bal);
+   IF (choice = 'C') THEN
+     UPDATE account SET balance = balance+amount;
+     bal := bal+amount;
+     dbms_output.put_line('Amount credited successfully....');
+     dbms_output.put_line('ACCOUNT DETAILS:');
+     dbms_output.put_line('account number : '|| ac_no || ' Balance : '||bal);  
+    
+   ELSE
+     IF(amount>bal) THEN
+        dbms_output.put_line('Insufficient balance....');
+     ELSE 
+      IF (choice = 'D') THEN
+        UPDATE account SET balance = balance-amount;
+        bal :=bal- amount;
+        dbms_output.put_line('Amount debited successfully....');
+        dbms_output.put_line('ACCOUNT DETAILS:');
+        dbms_output.put_line('account number : '|| ac_no || ' Balance : '||bal);  
+     END IF;
+   END IF;
+END IF;
+ ELSE
+   dbms_output.put_line('Accout not found');
+ END IF;
+END;
+________________________________________
+13. Write plsql block for printing odd numbers from 1 to 20
+declare
+n number := 1;
+no number(2) := :Enter_number;
+begin
+--can change no below to number if mentioned in question
+while n<=no
+loop
+dbms_output.put_line(n);
+n := n+2;
+end loop;
+end;
+-------------------------------------------------------------------------------------------------------------------------------
+create a trigger which will increase the salary of salesman by 10% ye wala nahi kiya kya?
+
+CREATE OR REPLACE TRIGGER increase_salesman_salary
+BEFORE UPDATE ON emp
+FOR EACH ROW
+WHEN (NEW.job = 'SALESMAN')
+BEGIN
+  :NEW.sal := :OLD.sal + :OLD.sal* 0.1; 
+END;
+
+Update emp set sal=2000 where empno=7499;
+
